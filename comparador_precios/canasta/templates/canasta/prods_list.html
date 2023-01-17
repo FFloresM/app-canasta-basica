@@ -1,1 +1,5 @@
-{{ data }}
+{% for item in data.itemListElement %}
+<li>
+    <b>{{item.position}}</b> {{item.name}} <a href="{{item.url}}">link</a>
+</li>
+{% endfor %}
