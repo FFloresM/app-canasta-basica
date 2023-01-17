@@ -5,6 +5,7 @@ import requests
 from .forms import ProductoForm
 from bs4 import BeautifulSoup
 from django.conf import settings
+import urllib
 
 def index(request):
     if request.method == 'GET':
@@ -18,7 +19,9 @@ def index(request):
 
 def buscar(request, producto):
     url = 'https://www.jumbo.cl/busqueda'
+    producto = producto.replace(' ', urllib.parse.quote(' ')) #palabras con espacios ##ñs se mantienen
     payload = {'ft': producto}
+    #params = urllib.parse.urlencode(payload)
     #url += producto
     response = requests.get(url, params=payload, verify=settings.BASE_DIR / 'Zscaler_Root_CA.crt')
     print(response.url)
