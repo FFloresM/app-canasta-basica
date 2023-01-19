@@ -4,12 +4,6 @@
     <b>{{forloop.counter}}</b> {{item.name}} {{item.brand}} {{item.unit}} {{item.price}} <a href="https://www.jumbo.cl{{item.url}}">ver detalle</a>
 </li>
 {% endfor %}
-{% comment %} <h3>JUMBO</h3>
-{% for item in data_jumbo.itemListElement %}
-<li>
-    <b>{{item.position}}</b> {{item.name}} <a href="{{item.url}}">link</a>
-</li>
-{% endfor %} {% endcomment %}
 
  <h3>UNIMARC</h3>
 {% for item in data_unimarc.availableProducts %}
@@ -17,3 +11,10 @@
     <b>{{forloop.counter}}</b> {{item.name}} {% for seller in item.sellers%} ${{seller.price}} {% endfor %} <a href="https://www.unimarc.cl/product{{item.detailUrl|slice:":-2"}}">ver detalle</a>
 </li>
 {% endfor %}
+
+ <h3>LIDER</h3>
+{% for item in data_lider %}
+<li>
+    <b>{{forloop.counter}}</b> {{item.name}} {{item.price}} <a href="https://www.lider.cl{{item.url}}">link</a>
+</li>
+{% endfor %} 
