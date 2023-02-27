@@ -2,8 +2,10 @@
 <ul>
 {% for item in data_jumbo %}
     <li>
-        <b>{{forloop.counter}}</b> {{item.name}} {{item.brand}} {{item.unit}} {{item.prices}} <a href="https://www.jumbo.cl{{item.url}}">ver detalle</a>
+        <b>{{forloop.counter}}</b> {{item.name}} {{item.brand}} {{item.unit}} {{item.prices}} <a href="https://www.jumbo.cl{{item.url}}">ver detalle</a> <button type="button" onclick="alert('Agregado al carrito')">Agregar</button>
     </li>
+{% empty %}
+    <b> No se sencontraron productos</b>
 {% endfor %}
 </ul>
 
@@ -13,6 +15,8 @@
     <li>
         <b>{{forloop.counter}}</b> {{item.name}} {% for seller in item.sellers%} ${{seller.price}} {% endfor %} <a href="https://www.unimarc.cl/product{{item.detailUrl|slice:":-2"}}">ver detalle</a>
     </li>
+{% empty %}
+    <b> No se sencontraron productos</b>
 {% endfor %}
 </ul>
 
@@ -22,6 +26,8 @@
     <li>
         <b>{{forloop.counter}}</b> {{item.name}} {{item.price}} <a href="https://www.lider.cl{{item.url}}">link</a>
     </li>
+{% empty %}
+    <b> No se sencontraron productos</b>
 {% endfor %} 
 </ul>
 
@@ -31,5 +37,7 @@
     <li>
         <b>{{forloop.counter}}</b> {{item.name}} {{item.brand}} {{item.unit}} {{item.prices}} <a href="https://www.santaisabel.cl{{item.url}}">ver detalle</a>
     </li>
+{% empty %}
+    <b> No se sencontraron productos</b>
 {% endfor %} 
 </ul>

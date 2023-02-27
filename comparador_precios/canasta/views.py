@@ -40,7 +40,7 @@ def buscar(request, producto):
         page3.goto(url_lider)
         page4.goto(url_santa)
         #jumbo
-        page1.wait_for_selector('div.shelf-product-island')
+        page1.locator('div.shelf-product-island')
         all_items = page1.locator('.shelf-product-island ')
         all_urls = page1.locator('div.shelf-product-top-island > div.shelf-product-image-island > a')
         data_jumbo = []
@@ -59,14 +59,14 @@ def buscar(request, producto):
         data = json.loads(all_items.all_inner_texts()[0])
         data_unimarc = data['props']['pageProps']['dehydratedState']['queries'][0]['state']['data']['data']
         #lider
-        page3.wait_for_selector('ul.ais-Hits-list')
+        page3.locator('ul.ais-Hits-list')
         all_items_names = page3.locator('div.product-info > h2 > div > div')
         all_items_prices = page3.locator('div.product-info > div > div.walmart-sales-price.d-flex > div.product-card__sale-price > span')
         all_urls = page3.locator('li.ais-Hits-item > div > div > a')
         data_lider = [{'name': name, 'price': price, 'url': url.get_attribute('href')} for name, price, url in zip(all_items_names.all_inner_texts(), all_items_prices.all_inner_texts(), all_urls.all())]
         #santa
-        page4.wait_for_selector('div.shelf-product-island')
-        all_items = page4.locator('.shelf-product-island ')
+        page4.locator('div.shelf-product-island')
+        all_items = page4.locator('.shelf-product-island')
         all_urls = page4.locator('div.shelf-product-top-island > div.shelf-product-image-island > a')
         data_santa = []
         for item, url in zip(all_items.all_inner_texts(), all_urls.all()):
