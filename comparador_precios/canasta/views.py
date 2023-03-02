@@ -22,12 +22,12 @@ def buscar(request, producto):
     url_unimarc = 'https://www.unimarc.cl/search'
     url_lider = 'https://www.lider.cl/supermercado/search'
     url_santa = 'https://www.santaisabel.cl/busqueda'
-    producto = producto.replace(' ', urllib.parse.quote(' ')) #palabras con espacios ##ñs se mantienen
-    payload = {'ft': producto}
-    url_jumbo+=f"?ft={producto}"
-    url_unimarc += f"?q={producto}"
-    url_lider+=f"?query={producto}"
-    url_santa += f"?ft={producto}"
+    producto_URL = producto.replace(' ', urllib.parse.quote(' ')) #palabras con espacios ##ñs se mantienen
+    payload = {'ft': producto_URL}
+    url_jumbo+=f"?ft={producto_URL}"
+    url_unimarc += f"?q={producto_URL}"
+    url_lider+=f"?query={producto_URL}"
+    url_santa += f"?ft={producto_URL}"
     with sync_playwright() as p:
         browser = p.chromium.launch()
         context = browser.new_context()
@@ -44,41 +44,55 @@ def buscar(request, producto):
         all_items = page1.locator('.shelf-product-island ')
         all_urls = page1.locator('div.shelf-product-top-island > div.shelf-product-image-island > a')
         data_jumbo = []
+        print("__JUMBO__")
         for item, url in zip(all_items.all_inner_texts(), all_urls.all()):
             item = item.split('\n')
-            item_dict = {
-                'brand': item[0],
-                'name': item[1],
-                'unit': item[2],
-                'prices': item[3:-2],
-                'url': url.get_attribute('href')
-            }
-            data_jumbo.append(item_dict)
+            print(item)
+            if producto.lower() in item[1].lower() or producto.lower() in item[0].lower(): #producto in brand or name 
+                item_dict = {
+                    'brand': item[0],
+                    'name': item[1],
+                    'unit': item[2],
+                    'prices': item[3:-2],
+                    'url': url.get_attribute('href')
+                }
+                data_jumbo.append(item_dict)
         #unimarc
         all_items = page2.locator('#__NEXT_DATA__')
         data = json.loads(all_items.all_inner_texts()[0])
-        data_unimarc = data['props']['pageProps']['dehydratedState']['queries'][0]['state']['data']['data']
+        items_unimarc = data['props']['pageProps']['dehydratedState']['queries'][0]['state']['data']['data']['availableProducts']
+        print("__UNIMARC__\n")
+        data_unimarc = []
+        for item in items_unimarc:
+            print(item)
+            if producto.lower() in item['name'].lower():
+                data_unimarc.append(item)
+        
         #lider
         page3.locator('ul.ais-Hits-list')
         all_items_names = page3.locator('div.product-info > h2 > div > div')
         all_items_prices = page3.locator('div.product-info > div > div.walmart-sales-price.d-flex > div.product-card__sale-price > span')
         all_urls = page3.locator('li.ais-Hits-item > div > div > a')
-        data_lider = [{'name': name, 'price': price, 'url': url.get_attribute('href')} for name, price, url in zip(all_items_names.all_inner_texts(), all_items_prices.all_inner_texts(), all_urls.all())]
+        data_lider = [{'name': name, 'price': price, 'url': url.get_attribute('href')} for name, price, url in zip(all_items_names.all_inner_texts(), all_items_prices.all_inner_texts(), all_urls.all()) if producto.lower() in name.lower()]
+        print("__LIDER__\n",data_lider)
         #santa
         page4.locator('div.shelf-product-island')
         all_items = page4.locator('.shelf-product-island')
         all_urls = page4.locator('div.shelf-product-top-island > div.shelf-product-image-island > a')
         data_santa = []
+        print("__SANTA ISABEL__")
         for item, url in zip(all_items.all_inner_texts(), all_urls.all()):
             item = item.split('\n')
-            item_dict = {
-                'brand': item[0],
-                'name': item[1],
-                'unit': item[2],
-                'prices': item[3:-2],
-                'url': url.get_attribute('href')
-            }
-            data_santa.append(item_dict)
+            print(item)
+            if producto.lower() in item[0].lower() or producto.lower() in item[1].lower():
+                item_dict = {
+                    'brand': item[0],
+                    'name': item[1],
+                    'unit': item[2],
+                    'prices': item[3:-2],
+                    'url': url.get_attribute('href')
+                }
+                data_santa.append(item_dict)
         browser.close()
     end = time.time()
     print(f"tiempo consultas: {end-start}")
