@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 class Product(models.Model):
     name = models.CharField(max_length=30)
@@ -20,8 +21,9 @@ class Sells(models.Model):
     detailURL = models.URLField(default='')
     item = models.ForeignKey(Product, on_delete=models.CASCADE, default=1)
     supermarket = models.ForeignKey(Supermarket, on_delete=models.CASCADE, default=1)
+    last_update = models.DateTimeField('fecha ultima busqueda', default=timezone.now())
 
     def __str__(self) -> str:
-        return f"{self.item} {self.supermarket} {self.unitPrice}"
+        return f"{self.item} {self.supermarket} ${self.unitPrice} {self.last_update.strftime('%d-%b-%Y %H:%M')}"
 
 
