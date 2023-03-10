@@ -21,7 +21,7 @@ class Sells(models.Model):
     detailURL = models.URLField(default='')
     item = models.ForeignKey(Product, on_delete=models.CASCADE, default=1)
     supermarket = models.ForeignKey(Supermarket, on_delete=models.CASCADE, default=1)
-    last_update = models.DateTimeField('fecha ultima busqueda', default=timezone.now())
+    last_update = models.DateTimeField('fecha ultima busqueda', default=timezone.now)
 
     def __str__(self) -> str:
         return f"{self.item} {self.supermarket} ${self.unitPrice} {self.last_update.strftime('%d-%b-%Y %H:%M')}"
