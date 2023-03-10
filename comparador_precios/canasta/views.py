@@ -5,6 +5,8 @@ from .forms import ProductoForm
 import urllib
 from playwright.sync_api import sync_playwright
 import time
+from .models import *
+from .utils import price2int
 
 def index(request):
     if request.method == 'GET':
@@ -89,6 +91,8 @@ def buscar_jumbo(request, producto):
     url_jumbo = 'https://www.jumbo.cl/busqueda'
     producto_URL = producto.replace(' ', urllib.parse.quote(' ')) #palabras con espacios ##ñs se mantienen
     url_jumbo+=f"?ft={producto_URL}"
+    #consultas a bd
+    
     with sync_playwright() as p:
         browser = p.chromium.launch()
         context = browser.new_context()
@@ -99,6 +103,7 @@ def buscar_jumbo(request, producto):
         all_items = page1.locator('.shelf-product-island ')
         all_urls = page1.locator('div.shelf-product-top-island > div.shelf-product-image-island > a')
         data_jumbo = []
+        raw_data_jumbo = []
         print("__JUMBO__")
         for item, url in zip(all_items.all_inner_texts(), all_urls.all()):
             item = item.split('\n')
@@ -112,6 +117,30 @@ def buscar_jumbo(request, producto):
                     'url': url.get_attribute('href')
                 }
                 data_jumbo.append(item_dict)
+                raw_data_jumbo.append(item)
+                #raw_data_jumbo[-1].append(url.get_attribute('href'))
+        browser.close()
 
     context = {'data_jumbo': data_jumbo}
+
+    save_data_jumbo(raw_data_jumbo)
+
     return render(request, 'canasta/prods_list.html', context=context)
+
+def save_data_jumbo(data_jumbo):
+    jumbo = Supermarket.objects.get_or_create(name='Jumbo')
+    for item in data_jumbo:
+        product = Product()
+        product.name = item[1]
+        product.brand = item[0]
+        product.format = item[2]
+        product.measurementUnit = item[4]
+        product.save()
+        sells = Sells()
+        sells.unitPrice = price2int(item[3])
+        sells.detailURL = item[-1]
+        sells.item = product
+        sells.supermarket = jumbo[0]
+        sells.save()
+
+    
