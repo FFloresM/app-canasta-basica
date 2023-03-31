@@ -108,7 +108,8 @@ def buscar_jumbo(request, producto):
         for item, url in zip(all_items.all_inner_texts(), all_urls.all()):
             item = item.split('\n')
             print(item)
-            if producto.lower() in item[1].lower() or producto.lower() in item[0].lower(): #producto in brand or name 
+            result = serchProductInResult(producto, " ".join(item))
+            if checkResult(result): #producto in brand or name 
                 item_dict = {
                     'brand': item[0],
                     'name': item[1],
@@ -128,19 +129,41 @@ def buscar_jumbo(request, producto):
     return render(request, 'canasta/prods_list.html', context=context)
 
 def save_data_jumbo(data_jumbo):
-    jumbo = Supermarket.objects.get_or_create(name='Jumbo')
+    jumbo, _ = Supermarket.objects.get_or_create(name='Jumbo')
     for item in data_jumbo:
-        product = Product()
-        product.name = item[1]
-        product.brand = item[0]
-        product.format = item[2]
-        product.measurementUnit = item[4]
-        product.save()
-        sells = Sells()
-        sells.unitPrice = price2int(item[3])
-        sells.detailURL = item[-1]
-        sells.item = product
-        sells.supermarket = jumbo[0]
-        sells.save()
+        brand, _ = Brand.objects.get_or_create(
+            brand_name = item[0]
+        )
+        product, _ = Product.objects.get_or_create(
+            name = item[1],
+            format = item[2],
+            brand = brand,
+            measurementUnit = item[4]
+        )
+        try:
+            unitPrice_ = price2int(item[3])
+        except:
+            unitPrice_ = price2int(item[4])
+        sell, _ = Sell.objects.update_or_create(
+            detailURL = item[-1],
+            item = product,
+            supermarket = jumbo,
+            unitPrice = unitPrice_    
+        )
 
-    
+def serchProductInResult(product, searchable):
+    product = [word.lower() for word in product.split()]
+    searchable = searchable.lower()
+    result = {word:False for word in product}
+    print(product, searchable)
+    for name in product:
+        if name in searchable:
+            result[name] = True
+            continue
+    return result
+
+def checkResult(result):
+    boolean_result = True
+    for value in result.values():
+        boolean_result &= value
+    return boolean_result
