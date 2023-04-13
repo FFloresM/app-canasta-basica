@@ -6,41 +6,50 @@ import urllib
 from playwright.sync_api import sync_playwright
 import time
 from .models import *
-from .utils import price2int
+from .utils import price2int, Producto
+from asgiref.sync import sync_to_async
 
 def index(request):
     if request.method == 'GET':
         form = ProductoForm(request.GET)
         if form.is_valid():
             prod = form.cleaned_data['producto']
-            return HttpResponseRedirect(f'buscar_jumbo/{prod}')
+            return HttpResponseRedirect(f'buscar/{prod}')
     else:
         form = ProductoForm()
     return render(request, 'canasta/index.html', {'form': form})
 
 def buscar(request, producto):
     start = time.time()
-    
+    url_jumbo = 'https://www.jumbo.cl/busqueda'
     url_unimarc = 'https://www.unimarc.cl/search'
     url_lider = 'https://www.lider.cl/supermercado/search'
     url_santa = 'https://www.santaisabel.cl/busqueda'
     producto_URL = producto.replace(' ', urllib.parse.quote(' ')) #palabras con espacios ##ñs se mantienen
     payload = {'ft': producto_URL}
-    
+    url_jumbo+=f"?ft={producto_URL}"
     url_unimarc += f"?q={producto_URL}"
     url_lider+=f"?query={producto_URL}"
     url_santa += f"?ft={producto_URL}"
     with sync_playwright() as p:
         browser = p.chromium.launch()
         context = browser.new_context()
-        
+        page1 = context.new_page()
         page2 = context.new_page()
         page3 = context.new_page()
         page4 = context.new_page()
+        page1.goto(url_jumbo)
         page2.goto(url_unimarc)
-        
         page3.goto(url_lider)
         page4.goto(url_santa)
+
+        #get data jumbo
+        page1.locator('div.shelf-product-island')
+        all_items = page1.locator('.shelf-product-island ')
+        all_urls = page1.locator('div.shelf-product-top-island > div.shelf-product-image-island > a')
+        all_items_txt = all_items.all_inner_texts()
+        all_urls_txt = [url.get_attribute('href') for url in  all_urls.all()]
+        data_jumbo = buscar_jumbo(all_items_txt, all_urls_txt, producto) #lista de productos
         #unimarc
         all_items = page2.locator('#__NEXT_DATA__')
         data = json.loads(all_items.all_inner_texts()[0])
@@ -63,20 +72,9 @@ def buscar(request, producto):
         page4.locator('div.shelf-product-island')
         all_items = page4.locator('.shelf-product-island')
         all_urls = page4.locator('div.shelf-product-top-island > div.shelf-product-image-island > a')
-        data_santa = []
-        print("__SANTA ISABEL__")
-        for item, url in zip(all_items.all_inner_texts(), all_urls.all()):
-            item = item.split('\n')
-            print(item)
-            if producto.lower() in item[0].lower() or producto.lower() in item[1].lower():
-                item_dict = {
-                    'brand': item[0],
-                    'name': item[1],
-                    'unit': item[2],
-                    'prices': item[3:-2],
-                    'url': url.get_attribute('href')
-                }
-                data_santa.append(item_dict)
+        all_items_txt = all_items.all_inner_texts()
+        all_urls_txt = [url.get_attribute('href') for url in  all_urls.all()]
+        data_santa = buscar_santa(all_items_txt, all_urls_txt, producto)
         browser.close()
     end = time.time()
     print(f"tiempo consultas: {end-start}")
@@ -84,78 +82,87 @@ def buscar(request, producto):
         'data_unimarc': data_unimarc,
         'data_lider': data_lider,
         'data_santa': data_santa,
+        'data_jumbo': data_jumbo,
     }
     return render(request, 'canasta/prods_list.html', context=context)
 
-def buscar_jumbo(request, producto):
-    url_jumbo = 'https://www.jumbo.cl/busqueda'
-    producto_URL = producto.replace(' ', urllib.parse.quote(' ')) #palabras con espacios ##ñs se mantienen
-    url_jumbo+=f"?ft={producto_URL}"
-    #consultas a bd
-    
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        context = browser.new_context()
-        page1 = context.new_page()
-        page1.goto(url_jumbo)
-        #jumbo
-        page1.locator('div.shelf-product-island')
-        all_items = page1.locator('.shelf-product-island ')
-        all_urls = page1.locator('div.shelf-product-top-island > div.shelf-product-image-island > a')
-        data_jumbo = []
-        raw_data_jumbo = []
-        print("__JUMBO__")
-        for item, url in zip(all_items.all_inner_texts(), all_urls.all()):
-            item = item.split('\n')
-            print(item)
-            result = serchProductInResult(producto, " ".join(item))
-            if checkResult(result): #producto in brand or name 
-                item_dict = {
-                    'brand': item[0],
-                    'name': item[1],
-                    'unit': item[2],
-                    'prices': item[3:-2],
-                    'url': url.get_attribute('href')
-                }
-                data_jumbo.append(item_dict)
-                raw_data_jumbo.append(item)
-                #raw_data_jumbo[-1].append(url.get_attribute('href'))
-        browser.close()
+def buscar_jumbo(all_items, all_urls, producto):
+    data_jumbo = []
+    raw_data_jumbo = []
+    print("__JUMBO__")
+    for item, url in zip(all_items, all_urls):
+        item = item.split('\n')
+        if 'Oferta' in item: item.remove('Oferta')
+        print(item)
+        result = serchProductInResult(producto, " ".join(item))
+        if checkResult(result): #producto in brand or name 
+            prod = Producto()
+            prod.setNombre(item[1])
+            prod.setMarca(item[0])
+            prod.setUnidadMedida(item[2])
+            prod.setURL(url)
+            prod.setListaPrecios(item[3:-2])
+            print(prod)
+            data_jumbo.append(prod)
+        raw_data_jumbo.append(item)
+            #raw_data_jumbo[-1].append(url.get_attribute('href'))
+        #browser.close()
 
-    context = {'data_jumbo': data_jumbo}
+    #context = {'data_jumbo': data_jumbo}
 
-    save_data_jumbo(raw_data_jumbo)
+    #save_data(data_jumbo, 'Jumbo')
 
-    return render(request, 'canasta/prods_list.html', context=context)
+    #return render(request, 'canasta/prods_list.html', context=context)
+    return data_jumbo
 
-def save_data_jumbo(data_jumbo):
-    jumbo, _ = Supermarket.objects.get_or_create(name='Jumbo')
-    for item in data_jumbo:
+def buscar_santa(all_items, all_urls, producto):
+    data_santa = []
+    print("__SANTA ISABEL__")
+    for item, url in zip(all_items, all_urls):
+        item = item.split('\n')
+        if 'Producto sin stock' in item: continue #ignore item sin stock
+        print(item)
+        result = serchProductInResult(producto, " ".join(item))
+        if checkResult(result):
+            prod = Producto()
+            prod.setNombre(item[1])
+            prod.setMarca(item[0])
+            prod.setUnidadMedida(item[2])
+            prod.setURL(url)
+            prod.setListaPrecios(item[3:-2])
+            print(prod)
+            data_santa.append(prod)
+    return data_santa
+
+@sync_to_async
+def save_data(data, supermarket):
+    superMarket, _ = Supermarket.objects.get_or_create(name=supermarket)
+    for item in data:
         brand, _ = Brand.objects.get_or_create(
-            brand_name = item[0]
+            brand_name = item['brand']
         )
         product, _ = Product.objects.get_or_create(
-            name = item[1],
-            format = item[2],
+            name = item['name'],
+            format = item['unit'],
             brand = brand,
-            measurementUnit = item[4]
+            measurementUnit = item['priceByUnit']
         )
         try:
-            unitPrice_ = price2int(item[3])
+            unitPrice_ = price2int(item['prices'][0])
         except:
-            unitPrice_ = price2int(item[4])
+            unitPrice_ = price2int(item['prices'][1])
         sell, _ = Sell.objects.update_or_create(
-            detailURL = item[-1],
+            detailURL = item['url'],
             item = product,
-            supermarket = jumbo,
+            supermarket = superMarket,
             unitPrice = unitPrice_    
         )
+        print(sell, _)
 
 def serchProductInResult(product, searchable):
     product = [word.lower() for word in product.split()]
     searchable = searchable.lower()
     result = {word:False for word in product}
-    print(product, searchable)
     for name in product:
         if name in searchable:
             result[name] = True
@@ -165,5 +172,5 @@ def serchProductInResult(product, searchable):
 def checkResult(result):
     boolean_result = True
     for value in result.values():
-        boolean_result &= value
+        boolean_result |= value
     return boolean_result
