@@ -1,4 +1,7 @@
+import re
+
 def price2int(price):
+    price = re.search('\$[0-9.]+', price).group()
     return int(price.replace('$','').replace('.','',3))
 
 class Producto:
@@ -25,8 +28,10 @@ class Producto:
     def setListaPrecios(self, listaPrecios: list) -> None:
         if len(listaPrecios) > 0:
             self.listaPrecios = listaPrecios
-            if '(Normal)' in listaPrecios:
+            if '(Normal)' in listaPrecios: #para jumbo y santa
                 self.setPrecio(price2int(listaPrecios[listaPrecios.index('(Normal)') - 1]))
+            else:
+                self.setPrecio(price2int(listaPrecios[0]))
 
     def setURL(self, url: str) -> str:
         self.url = url
