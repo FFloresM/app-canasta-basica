@@ -100,6 +100,8 @@ def buscar_jumbo(all_items, all_urls, producto):
     for item, url in zip(all_items, all_urls):
         item = item.split('\n')
         if 'Oferta' in item: item.remove('Oferta')
+        if 'Cenco Black' in item: item.remove('Cenco Black')
+        if 'Exclusivo Internet' in item: item.remove('Exclusivo Internet')
         print(item)
         result = serchProductInResult(producto, " ".join(item))
         if checkResult(result): #producto in brand or name 
@@ -121,6 +123,8 @@ def buscar_santa(all_items, all_urls, producto):
         item = item.split('\n')
         if 'Oferta' in item: item.remove('Oferta')
         if 'Producto sin stock' in item: continue #ignore item sin stock
+        if 'Cenco Black' in item: item.remove('Cenco Black')
+        if 'Exclusivo Internet' in item: item.remove('Exclusivo Internet')
         print(item)
         result = serchProductInResult(producto, " ".join(item))
         if checkResult(result):
@@ -142,9 +146,9 @@ def buscar_lider(brands_txt, names_txt, prices_txt, urls_txt, producto):
         result = serchProductInResult(producto, " ".join([brand,name]))
         if checkResult(result):
             prod = Producto()
-            prod.setNombre(name)
+            prod.setNombre(name.split(',', 1)[0])
             prod.setMarca(brand)
-            prod.setUnidadMedida(name.split(',')[1])
+            prod.setUnidadMedida(name.split(',', 1)[1])
             prod.setURL(url)
             prod.setPrecio(price2int(price))
             print(prod)

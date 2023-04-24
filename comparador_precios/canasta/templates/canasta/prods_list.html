@@ -1,4 +1,6 @@
 {% load humanize %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'canasta/styles.css' %}">
 <h3>JUMBO</h3>
 <ul>
 {% for item in data_jumbo %}
@@ -44,3 +46,14 @@
 </ul>
 
 <a type="button" value="Buscar" class="btn btn-primary" href="/canasta">Nueva búsqueda</a>
+
+<table>
+    <thead>
+        <tr>
+            <th> Productos disponibles </th>
+            <th> <img id="jumbo_icon" class="icon_top_table" src="{% static 'canasta/jumbo.png' %}" > </th>
+            <th> <img id="lider_icon" class="icon_top_table" src="{% static 'canasta/lider.png' %}" > </th>
+            <th> <img id="santa_icon" class="icon_top_table" src="{% static 'canasta/Santa_Isabel.png' %}" > </th>
+        </tr>
+    </thead>
+</table>
