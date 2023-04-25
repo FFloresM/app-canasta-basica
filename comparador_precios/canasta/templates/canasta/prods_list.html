@@ -5,7 +5,7 @@
 <ul>
 {% for item in data_jumbo %}
     <li>
-        {{forloop.counter}} {{item.nombre}} <b>{{item.marca}}</b> {{item.unidadMedida}} {% if item.precio != 0 %}${{item.precio|intcomma}}{% else %}{{item.listaPrecios}}{% endif %}  <a href="https://www.jumbo.cl{{item.url}}" target="_blank">ver detalle</a> <button type="button" class="btn btn-primary" onclick="alert('Agregado al carrito')">Agregar</button>
+        {{forloop.counter}} <span class="item_nombre">{{item.nombre}}</span> <b>{{item.marca}}</b> {{item.unidadMedida}} {% if item.precio != 0 %}${{item.precio|intcomma}}{% else %}{{item.listaPrecios}}{% endif %}  <a href="https://www.jumbo.cl{{item.url}}" target="_blank">ver detalle</a> <button type="button" class="btn btn-primary" onclick="alert('Agregado al carrito')">Agregar</button>
     </li>
 {% empty %}
     <b> No se sencontraron productos</b>
@@ -16,7 +16,7 @@
  <ul>
 {% for item in data_unimarc %}
     <li>
-        {{forloop.counter}} {{item.name}} {% for seller in item.sellers%} ${{seller.price}} {% endfor %} <a href="https://www.unimarc.cl/product{{item.detailUrl|slice:":-2"}}" target="_blank">ver detalle</a> <button type="button" class="btn btn-primary" onclick="alert('Agregado al carrito')">Agregar</button>
+        {{forloop.counter}} <span class="item_nombre">{{item.name}}</span> {% for seller in item.sellers%} ${{seller.price}} {% endfor %} <a href="https://www.unimarc.cl/product{{item.detailUrl|slice:":-2"}}" target="_blank">ver detalle</a> <button type="button" class="btn btn-primary" onclick="alert('Agregado al carrito')">Agregar</button>
     </li>
 {% empty %}
     <b> No se sencontraron productos</b>
@@ -27,7 +27,7 @@
  <ul>
 {% for item in data_lider %}
     <li>
-        {{forloop.counter}} {{item.nombre}} <b>{{item.marca}}</b> {{item.unidadMedida}} ${{item.precio|intcomma}} <a href="https://www.lider.cl{{item.url}}" target="_blank">ver detalle</a> <button type="button" class="btn btn-primary" onclick="alert('Agregado al carrito')">Agregar</button>
+        {{forloop.counter}} <span class="item_nombre">{{item.nombre}}</span> <b>{{item.marca}}</b> {{item.unidadMedida}} ${{item.precio|intcomma}} <a href="https://www.lider.cl{{item.url}}" target="_blank">ver detalle</a> <button type="button" class="btn btn-primary" onclick="alert('Agregado al carrito')">Agregar</button>
     </li>
 {% empty %}
     <b> No se sencontraron productos</b>
@@ -38,7 +38,7 @@
 <ul>
 {% for item in data_santa %}
     <li>
-        {{forloop.counter}} {{item.nombre}} <b>{{item.marca}}</b> {{item.unidadMedida}} {% if item.precio != 0 %}${{item.precio|intcomma}}{% else %}{{item.listaPrecios}}{% endif %} <a href="https://www.santaisabel.cl{{item.url}}" target="_blank">ver detalle</a> <button type="button" class="btn btn-primary" onclick="alert('Agregado al carrito')">Agregar</button>
+        {{forloop.counter}} <span class="item_nombre">{{item.nombre}}</span> <b>{{item.marca}}</b> {{item.unidadMedida}} {% if item.precio != 0 %}${{item.precio|intcomma}}{% else %}{{item.listaPrecios}}{% endif %} <a href="https://www.santaisabel.cl{{item.url}}" target="_blank">ver detalle</a> <button type="button" class="btn btn-primary" onclick="alert('Agregado al carrito')">Agregar</button>
     </li>
 {% empty %}
     <b> No se sencontraron productos</b>

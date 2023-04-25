@@ -91,6 +91,11 @@ def buscar(request, producto):
         'data_santa': data_santa,
         'data_jumbo': data_jumbo,
     }
+    for i in data_jumbo:
+        for j in data_santa:
+            if j.getUnidadMedida() == i.getUnidadMedida() and i == j:
+                print(i)
+                print(j)
     return render(request, 'canasta/prods_list.html', context=context)
 
 def buscar_jumbo(all_items, all_urls, producto):
@@ -106,9 +111,9 @@ def buscar_jumbo(all_items, all_urls, producto):
         result = serchProductInResult(producto, " ".join(item))
         if checkResult(result): #producto in brand or name 
             prod = Producto()
-            prod.setNombre(item[1])
+            prod.setNombre(" ".join(item[1].split()[:-2]))
             prod.setMarca(item[0])
-            prod.setUnidadMedida(item[2])
+            prod.setUnidadMedida(" ".join(item[1].split()[-2:]))
             prod.setURL(url)
             prod.setListaPrecios(item[3:-2])
             print(prod)
@@ -129,9 +134,9 @@ def buscar_santa(all_items, all_urls, producto):
         result = serchProductInResult(producto, " ".join(item))
         if checkResult(result):
             prod = Producto()
-            prod.setNombre(item[1])
+            prod.setNombre(" ".join(item[1].split()[:-2]))
             prod.setMarca(item[0])
-            prod.setUnidadMedida(item[2])
+            prod.setUnidadMedida(" ".join(item[1].split()[-2:]))
             prod.setURL(url)
             prod.setListaPrecios(item[3:-2])
             print(prod)

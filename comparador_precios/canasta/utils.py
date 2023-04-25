@@ -60,4 +60,10 @@ class Producto:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Producto):
             return NotImplemented
-        return (self.getNombre(), self.getMarca()) == (other.getNombre(), other.getMarca())
+        self_nombre = set(self.getNombre().split())
+        other_nombre = set(other.getNombre().split())
+        equals = self_nombre & other_nombre
+        min_length = min(len(self_nombre), len(other_nombre))
+        if len(equals)/min_length >= 0.8:
+            return True
+        return False
